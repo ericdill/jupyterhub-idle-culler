@@ -367,7 +367,8 @@ def main():
         'cull_every',
         type=int,
         default=0,
-        help="The interval (in seconds) for checking for idle servers to cull",
+        help=("The interval (in seconds) for checking for idle servers to cull. "
+              "-1 is a sentinel value that means 'run once and then exit'"),
     )
     define(
         'max_age',
@@ -428,6 +429,14 @@ def main():
     # schedule first cull immediately
     # because PeriodicCallback doesn't start until the end of the first interval
     loop.add_callback(cull)
+    # Use -1 as a sentinel value to mean "run once and exit"
+    if options.cull_every == -1:
+        def kill():
+            raise KeyboardInterrupt()
+        loop.add_callback(kill)
+        # be minimally invasive to the rest of the library. PeriodicCallback 
+        # errors if its time is negative, so just set it to 0 here.
+        options.cull_every = 0
     # schedule periodic cull
     pc = PeriodicCallback(cull, 1e3 * options.cull_every)
     pc.start()
