@@ -432,6 +432,7 @@ def main():
     # Use -1 as a sentinel value to mean "run once and exit"
     if options.cull_every == -1:
         def kill():
+            app_log.warning("Manually terminating idle culler after single run because options.cull_every was set to -1")
             raise KeyboardInterrupt()
         loop.add_callback(kill)
         # be minimally invasive to the rest of the library. PeriodicCallback 
